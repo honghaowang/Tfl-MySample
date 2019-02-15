@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TensorFlowDemo1</string>
+    <string name="app_name">TFL-sample</string>
     <string name="select"> Select </string>
     <string name="detect">Detect</string>
 </resources>

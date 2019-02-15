@@ -1,14 +1,19 @@
 package com.example.app;
 
+import android.content.Intent;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.app.R;
@@ -53,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap croppedBitmap = null;
 
     private Vector<String> resVec = new Vector<String>();
-
+    private ImageView imageViewer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,8 +75,55 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        imageViewer = (ImageView) findViewById(R.id.imageView1);
+
     }
 
+
+    /*  2/15/2019 by Honghao
+     *  Photo Select button onClick function:
+     *  Create Intent to open gallery
+     */
+    public void selectPhoto(View v){
+        Log.d("Select photo", "click button");
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(galleryIntent, 1);
+    }
+
+    /*  2/15/2019 by Honghao
+     *  onActivityResult function:
+     *  Once after User picks image, we need to get the picked image data and set it in ImageView.
+     */
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        try{
+            //when an image is picked
+            if(requestCode == 1 && resultCode == RESULT_OK && data != null){
+                //get image from intent data
+                Uri selectedImage = data.getData();
+                String[] fipePathColumn = {MediaStore.Images.Media.DATA};
+
+                //get the cursor, and move to first row
+                Cursor cursor = getContentResolver().query(selectedImage, fipePathColumn, null, null, null);
+                cursor.moveToFirst();
+
+                //copy the cursor to a String variable
+                int columnIndex = cursor.getColumnIndex(fipePathColumn[0]);
+                String imgDecodableString = cursor.getString(columnIndex);
+                cursor.close();
+
+                //save the decode result to bitmap
+                bitmap = BitmapFactory.decodeFile(imgDecodableString);
+                //set picture in imageView via decoding string
+                imageViewer.setImageBitmap(bitmap);
+            }
+        } catch(Exception e){
+            Log.e("Select photo", e.getMessage());
+        }
+    }
 
     public String onTestModelPrediction() {
         classifier =
@@ -84,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         IMAGE_STD,
                         INPUT_NAME,
                         OUTPUT_NAME);
-        bitmap = getBitmapFromAsset(DEFALT_ASSSETS_IMAGE);
+        //bitmap = getBitmapFromAsset(DEFALT_ASSSETS_IMAGE);
         if (bitmap != null) {
             Log.i("TEST for image:", DEFALT_ASSSETS_IMAGE);
             Log.i(" image size:", String.valueOf(bitmap.getWidth()) + 'x' + String.valueOf(bitmap.getHeight()));
@@ -94,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
             croppedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, false);
         } else {
             Log.i("Load for image failed! ", DEFALT_ASSSETS_IMAGE);
-
+            return "Please select an image first!";
         }
         final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
         LOGGER.i("Detect: %s", results);
@@ -114,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         return res;
     }
 
-    private Bitmap getBitmapFromAsset(String strName) {
+/*    private Bitmap getBitmapFromAsset(String strName) {
         AssetManager assetManager = getAssets();
         InputStream istr = null;
         try {
@@ -126,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
 
         return bitmap;
     }
-
+*/
     private Vector<String> getResVec()
     {
         String actualFilename = "result.txt";
