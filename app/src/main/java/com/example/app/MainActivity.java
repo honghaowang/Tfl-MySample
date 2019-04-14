@@ -77,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
 
         imageViewer = (ImageView) findViewById(R.id.imageView1);
 
+        //Request Permission
+        PermissionList permission = new PermissionList(getApplicationContext(), MainActivity.this);
+        permission.setStoragePermission();
+        permission.addPermissionList("android.permission.INTERNET");
+        permission.setPhoneStatePermission();
+
+        permission.getPermission();
+        //Request Permission --> End
     }
 
 
